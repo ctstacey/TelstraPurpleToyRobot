@@ -1,7 +1,7 @@
 # Readify Toy Robot Simulator
 Readify Graduate Coding Puzzle 2019 - Toy Robot Simulator
 
-## Instructions
+## Instructions from Readify
 
 Create a library that can read in commands of the following form:
 ```
@@ -57,3 +57,19 @@ Output: 3,3,NORTH
 - You should provide sufficient evidence that your solution is complete by, as a minimum, indicating that it works correctly against the supplied test data.
 - You should provide build scripts or instructions to build and verify the solution.
 - The code should be original and you may not use any external libraries or open source code to solve this problem, but you may use external libraries or tools for building or testing purposes.
+
+## Instructions for building and testing
+
+- use Python 3.x to run and test
+
+- in a new Python 3.x file,
+```
+  from Tests import *
+```
+which will give you access to four test functions
+```
+testA()
+testB()
+testC()
+testD()
+```
