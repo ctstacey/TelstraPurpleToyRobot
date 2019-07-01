@@ -62,9 +62,9 @@ Output: 3,3,NORTH
 
 - use Python 3.x to run and test
 
-- in a new Python 3.x file,
+- in a new Python 3.x file
 ```
-  from Tests import *
+from Tests import *
 ```
 which will give you access to four test functions
 ```
