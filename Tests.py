@@ -7,25 +7,50 @@
 from ReadifyToyRobot import *
 
 from functools import wraps
+import io
+import sys
 
+class Tester:
+  '''A class for performing basic testing of functions return values.'''
 
-def logit(func, func_name):
-  '''decorator function used to print names of functions called'''
+  def __init__(self):
+    self.capturedOutput = None
+  
+  def start_logging(self) -> None:
+    self.capturedOutput = io.StringIO()
+    sys.stdout = self.capturedOutput
+    
+  def stop_logging(self) -> None:
+    sys.stdout = sys.__stdout__
 
-  @wraps(func)
-  def wrapped(*args, **kwargs):
-    s1  = ', '.join( [f'{v!r}' for v in args] )
-    s2  = ', '.join( [f'{k}={v!r}' for k, v in kwargs.items()] )
-    sep = ', ' if s1 != '' and s2 != '' else ''
+  def get_log(self) -> str:
+    '''returns the captured output thus far (a string)
+       (does not consume the stream, thus this method is idempotent)'''
+    return self.capturedOutput.getvalue()
 
-    print(f"{func_name}(", s1, sep, s2, ")", sep='', end='\n')
-    func(*args, **kwargs)
+  def capture_calls_and_returns(self, func, func_name):
+    '''decorator function used to print names of functions called.
+       Note: arguments passed in are captured in their repr form.
+             (ie. calls will not be identical to that made in code)'''
 
-  return wrapped
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+      s1  = ', '.join( [f'{v!r}' for v in args] )
+      s2  = ', '.join( [f'{k}={v!r}' for k, v in kwargs.items()] )
+      sep = ', ' if s1 != '' and s2 != '' else ''
 
+      call = f"{func_name}({s1}{sep}{s2})"
+      print(call)
+
+      r = func(*args, **kwargs)
+      print(' returned:\n',r)
+
+    return wrapped
 
 def testA():
 
+  t = Tester()
+ 
   # create table and robot that will be used in testing
   table = FlatSurface()
   robot = Character()
@@ -33,11 +58,13 @@ def testA():
   # Wrap methods of THIS INSTANCE of Character (to print calls to console)
   # Second arg is used because passing in the variable name 'robot'
   # makes the output easier to read (no better way to get variable name).
-  robot.report = logit(robot.report, 'robot.report')
-  robot.right  = logit(robot.right,  'robot.right')
-  robot.left   = logit(robot.left,   'robot.left')
-  robot.place  = logit(robot.place,  'robot.place')
-  robot.move   = logit(robot.move,   'robot.move')
+  robot.report = t.capture_calls_and_returns(robot.report, 'robot.report')
+  robot.right  = t.capture_calls_and_returns(robot.right,  'robot.right')
+  robot.left   = t.capture_calls_and_returns(robot.left,   'robot.left')
+  robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
+  robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
+
+  t.start_logging()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -45,22 +72,40 @@ def testA():
   robot.place(table, 0, 0, 'north')
   robot.move()
   robot.report()
-
-  '''
-  >>> testA()
-  table = FlatSurface(width=5, depth=5)
-  robot.report()
-  None, None, None
-
-  robot.place(FlatSurface(width=5, depth=5), 0, 0, 'north')
-  robot.move()
-  robot.report()
-  0,1,NORTH
-  '''
+ 
+  t.stop_logging()
+  
+  if t.get_log() == \
+    "\n".join(
+      ['''table = FlatSurface(width=5, depth=5)'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=5, depth=5), 0, 0, 'north')'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''0,1,NORTH'''
+      ,''' returned:'''
+      ,''' 0,1,NORTH'''
+      ,''''''
+      ]):
+    print("testA PASSED")
+    return True
+  else:
+    print("testD *FAILED*")
+    return False
 
 
 def testB():
 
+  t = Tester()
+
   # create table and robot that will be used in testing
   table = FlatSurface()
   robot = Character()
@@ -68,11 +113,13 @@ def testB():
   # Wrap methods of THIS INSTANCE of Character (to print calls to console)
   # Second arg is used because passing in the variable name 'robot'
   # makes the output easier to read (no better way to get variable name).
-  robot.report = logit(robot.report, 'robot.report')
-  robot.right  = logit(robot.right,  'robot.right')
-  robot.left   = logit(robot.left,   'robot.left')
-  robot.place  = logit(robot.place,  'robot.place')
-  robot.move   = logit(robot.move,   'robot.move')
+  robot.report = t.capture_calls_and_returns(robot.report, 'robot.report')
+  robot.right  = t.capture_calls_and_returns(robot.right,  'robot.right')
+  robot.left   = t.capture_calls_and_returns(robot.left,   'robot.left')
+  robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
+  robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
+
+  t.start_logging()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -81,20 +128,38 @@ def testB():
   robot.left()
   robot.report()
 
-  '''
-  >>> testB()
-  table = FlatSurface(width=5, depth=5)
-  robot.report()
-  None, None, None
-
-  robot.place(FlatSurface(width=5, depth=5), 0, 0, 'north')
-  robot.left()
-  robot.report()
-  0,0,WEST
-  '''
+  t.stop_logging()
+  
+  if t.get_log() == \
+    "\n".join(
+      ['''table = FlatSurface(width=5, depth=5)'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=5, depth=5), 0, 0, 'north')'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.left()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''0,0,WEST'''
+      ,''' returned:'''
+      ,''' 0,0,WEST'''
+      ,''''''
+      ]):
+    print("testB PASSED")
+    return True
+  else:
+    print("testD *FAILED*")
+    return False
 
 
 def testC():
+
+  t = Tester()
 
   # create table and robot that will be used in testing
   table = FlatSurface()
@@ -103,11 +168,13 @@ def testC():
   # Wrap methods of THIS INSTANCE of Character (to print calls to console)
   # Second arg is used because passing in the variable name 'robot'
   # makes the output easier to read (no better way to get variable name).
-  robot.report = logit(robot.report, 'robot.report')
-  robot.right  = logit(robot.right,  'robot.right')
-  robot.left   = logit(robot.left,   'robot.left')
-  robot.place  = logit(robot.place,  'robot.place')
-  robot.move   = logit(robot.move,   'robot.move')
+  robot.report = t.capture_calls_and_returns(robot.report, 'robot.report')
+  robot.right  = t.capture_calls_and_returns(robot.right,  'robot.right')
+  robot.left   = t.capture_calls_and_returns(robot.left,   'robot.left')
+  robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
+  robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
+
+  t.start_logging()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -119,23 +186,47 @@ def testC():
   robot.move()
   robot.report()
 
-  '''
-  >>> testC()
-  table = FlatSurface(width=5, depth=5)
-  robot.report()
-  None, None, None
-
-  robot.place(FlatSurface(width=5, depth=5), 1, 2, 'east')
-  robot.move()
-  robot.move()
-  robot.left()
-  robot.move()
-  robot.report()
-  3,3,NORTH
-  '''
+  t.stop_logging()
+    
+  if t.get_log() == \
+    "\n".join(
+      ['''table = FlatSurface(width=5, depth=5)'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=5, depth=5), 1, 2, 'east')'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.left()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''3,3,NORTH'''
+      ,''' returned:'''
+      ,''' 3,3,NORTH'''
+      ,''''''
+      ]):
+    print("testC PASSED")
+    return True
+  else:
+    print("testD *FAILED*")
+    return False
 
 
 def testD():
+
+  t = Tester()
 
   # create table and robot that will be used in testing
   table = FlatSurface(width=3, depth=3)
@@ -144,12 +235,13 @@ def testD():
   # Wrap methods of THIS INSTANCE of Character (to print calls to console)
   # Second arg is used because passing in the variable name 'robot'
   # makes the output easier to read (no better way to get variable name).
-  robot.report = logit(robot.report, 'robot.report')
-  robot.right  = logit(robot.right,  'robot.right')
-  robot.left   = logit(robot.left,   'robot.left')
-  robot.place  = logit(robot.place,  'robot.place')
-  robot.move   = logit(robot.move,   'robot.move')
+  robot.report = t.capture_calls_and_returns(robot.report, 'robot.report')
+  robot.right  = t.capture_calls_and_returns(robot.right,  'robot.right')
+  robot.left   = t.capture_calls_and_returns(robot.left,   'robot.left')
+  robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
+  robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
 
+  t.start_logging()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -233,109 +325,220 @@ def testD():
   robot.left()
   robot.report(); print()
 
-  '''
-  >>> testD()
-  table = FlatSurface(width=3, depth=3)
-  robot.report()
-  None, None, None
+  t.stop_logging()
+      
+  if t.get_log() == \
+    "\n".join(
+      ['''table = FlatSurface(width=3, depth=3)'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.right()'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.left()'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=3, depth=3), 10, 10, 'NORTH')'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=3, depth=3), 2, 2, 'JUNK')'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''None, None, None'''
+      ,''' returned:'''
+      ,''' None, None, None'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=3, depth=3), 2, 2, 'north')'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''2,2,NORTH'''
+      ,''' returned:'''
+      ,''' 2,2,NORTH'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''2,2,NORTH'''
+      ,''' returned:'''
+      ,''' 2,2,NORTH'''
+      ,''''''
+      ,'''robot.right()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''2,2,EAST'''
+      ,''' returned:'''
+      ,''' 2,2,EAST'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''2,2,EAST'''
+      ,''' returned:'''
+      ,''' 2,2,EAST'''
+      ,''''''
+      ,'''robot.right()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''2,2,SOUTH'''
+      ,''' returned:'''
+      ,''' 2,2,SOUTH'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''2,1,SOUTH'''
+      ,''' returned:'''
+      ,''' 2,1,SOUTH'''
+      ,''''''
+      ,'''robot.right()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''2,1,WEST'''
+      ,''' returned:'''
+      ,''' 2,1,WEST'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''1,1,WEST'''
+      ,''' returned:'''
+      ,''' 1,1,WEST'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''0,1,WEST'''
+      ,''' returned:'''
+      ,''' 0,1,WEST'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''0,1,WEST'''
+      ,''' returned:'''
+      ,''' 0,1,WEST'''
+      ,''''''
+      ,'''robot.left()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''0,1,SOUTH'''
+      ,''' returned:'''
+      ,''' 0,1,SOUTH'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''0,0,SOUTH'''
+      ,''' returned:'''
+      ,''' 0,0,SOUTH'''
+      ,''''''
+      ,'''robot.move()'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''0,0,SOUTH'''
+      ,''' returned:'''
+      ,''' 0,0,SOUTH'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=3, depth=3), 10, 10, 'north')'''
+      ,''' returned:'''
+      ,''' False'''
+      ,'''robot.report()'''
+      ,'''0,0,SOUTH'''
+      ,''' returned:'''
+      ,''' 0,0,SOUTH'''
+      ,''''''
+      ,'''robot.place(FlatSurface(width=3, depth=3), 1, 1, 'west')'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''1,1,WEST'''
+      ,''' returned:'''
+      ,''' 1,1,WEST'''
+      ,''''''
+      ,'''robot.right()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''1,1,NORTH'''
+      ,''' returned:'''
+      ,''' 1,1,NORTH'''
+      ,''''''
+      ,'''robot.right()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''1,1,EAST'''
+      ,''' returned:'''
+      ,''' 1,1,EAST'''
+      ,''''''
+      ,'''robot.left()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''1,1,NORTH'''
+      ,''' returned:'''
+      ,''' 1,1,NORTH'''
+      ,''''''
+      ,'''robot.left()'''
+      ,''' returned:'''
+      ,''' True'''
+      ,'''robot.report()'''
+      ,'''1,1,WEST'''
+      ,''' returned:'''
+      ,''' 1,1,WEST'''
+      ,''''''
+      ,''''''
+      ]):
+    print("testD PASSED")
+    return True
+  else:
+    print("testD *FAILED*")
+    return False
 
-  robot.right()
-  robot.report()
-  None, None, None
-
-  robot.left()
-  robot.report()
-  None, None, None
-
-  robot.move()
-  robot.report()
-  None, None, None
-
-  robot.place(FlatSurface(width=3, depth=3), 10, 10, 'NORTH')
-  robot.report()
-  None, None, None
-
-  robot.place(FlatSurface(width=3, depth=3), 2, 2, 'JUNK')
-  robot.report()
-  None, None, None
-
-  robot.place(FlatSurface(width=3, depth=3), 2, 2, 'north')
-  robot.report()
-  2,2,NORTH
-
-  robot.move()
-  robot.report()
-  2,2,NORTH
-
-  robot.right()
-  robot.report()
-  2,2,EAST
-
-  robot.move()
-  robot.report()
-  2,2,EAST
-
-  robot.right()
-  robot.report()
-  2,2,SOUTH
-
-  robot.move()
-  robot.report()
-  2,1,SOUTH
-
-  robot.right()
-  robot.report()
-  2,1,WEST
-
-  robot.move()
-  robot.report()
-  1,1,WEST
-
-  robot.move()
-  robot.report()
-  0,1,WEST
-
-  robot.move()
-  robot.report()
-  0,1,WEST
-
-  robot.left()
-  robot.report()
-  0,1,SOUTH
-
-  robot.move()
-  robot.report()
-  0,0,SOUTH
-
-  robot.move()
-  robot.report()
-  0,0,SOUTH
-
-  robot.place(FlatSurface(width=3, depth=3), 10, 10, 'north')
-  robot.report()
-  0,0,SOUTH
-
-  robot.place(FlatSurface(width=3, depth=3), 1, 1, 'west')
-  robot.report()
-  1,1,WEST
-
-  robot.right()
-  robot.report()
-  1,1,NORTH
-
-  robot.right()
-  robot.report()
-  1,1,EAST
-
-  robot.left()
-  robot.report()
-  1,1,NORTH
-
-  robot.left()
-  robot.report()
-  1,1,WEST
-  '''
-
+testA()
+testB()
+testC()
+testD()
 
 #-------------------------------------------------------------------------
 # END OF FILE
