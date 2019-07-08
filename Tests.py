@@ -13,22 +13,23 @@ import sys
 class Tester:
   '''A class for performing basic testing of functions return values.'''
 
-  def __init__(self):
-    self.capturedOutput = None
+  def __init__(s):
+    s.capturedOutput = None
   
-  def start_logging(self) -> None:
-    self.capturedOutput = io.StringIO()
-    sys.stdout = self.capturedOutput
+  def start_logging(s) -> None:
+    s.capturedOutput = io.StringIO()
+    sys.stdout = s.capturedOutput
     
-  def stop_logging(self) -> None:
+  def stop_logging(s) -> None:
     sys.stdout = sys.__stdout__
 
-  def get_log(self) -> str:
+  def get_log(s) -> str:
     '''returns the captured output thus far (a string)
        (does not consume the stream, thus this method is idempotent)'''
-    return self.capturedOutput.getvalue()
+    return s.capturedOutput.getvalue()
 
-  def capture_calls_and_returns(self, func, func_name):
+  # technically this is a static method
+  def capture_calls_and_returns(s, func, func_name):
     '''decorator function used to print names of functions called.
        Note: arguments passed in are captured in their repr form.
              (ie. calls will not be identical to that made in code)'''
@@ -534,11 +535,6 @@ def testD():
   else:
     print("testD *FAILED*")
     return False
-
-testA()
-testB()
-testC()
-testD()
 
 #-------------------------------------------------------------------------
 # END OF FILE
