@@ -36,7 +36,7 @@ class FlatSurface:
             y >= 0 and y < s._depth)
 
 
-  def __repr__(s):
+  def __repr__(s) -> str:
     return f"FlatSurface(width={s._width}, depth={s._depth})"
 
 
@@ -123,17 +123,21 @@ class Character:
       return False
 
 
-  def report(s, *args, **kwargs):
+  def report(s, *args, **kwargs) -> str:
     '''print current (x,y) position and direction of Character'''
 
     if s._flat_surface:
       x,y = s._position
-      print(f"{x},{y},{s._NSEW[s._dir_index]}")
+      d   = s._NSEW[s._dir_index]
+      ret = f"{x},{y},{d}"
     else:
-      print("None, None, None")
+      ret = "None, None, None"
+    
+    print(ret)
+    return ret
 
 
-  def __repr__(s):
+  def __repr__(s) -> str:
     if s._flat_surface:
 
       fs  = repr(s._flat_surface)
