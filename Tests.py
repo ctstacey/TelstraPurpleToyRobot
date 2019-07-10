@@ -10,7 +10,7 @@ from ReadifyToyRobot import *
 import io
 import sys
 
-# for copying function __name__ etc from original func to wrapper func
+# for copying function __name__ etc from wrapped func to wrapper func
 from functools import wraps
 
 # for parsing command line arguments

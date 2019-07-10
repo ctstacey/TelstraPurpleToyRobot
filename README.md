@@ -62,14 +62,6 @@ Output: 3,3,NORTH
 
 - use Python 3.x to run and test
 
-- in a new Python 3.x file
-```
-from Tests import *
-```
-which will give you access to four test functions
-```
-testA()
-testB()
-testC()
-testD()
-```
+- either
+  - run `python tests.py -t` or `python tests.py --test_all` to run all tests (and print results)
+  - in a new Python 3.x file use `from Tests import *` to get access to all the test functions (`testA()`, `testB()`, etc)
