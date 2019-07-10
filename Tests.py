@@ -4,11 +4,19 @@
 # Author: c stacey
 #-------------------------------------------------------------------------
 
+# the library we are testing
 from ReadifyToyRobot import *
 
-from functools import wraps
 import io
 import sys
+
+# for copying function __name__ etc from original func to wrapper func
+from functools import wraps
+
+# for parsing command line arguments
+import argparse
+
+
 
 class Tester:
   '''A class for performing basic testing of functions return values.'''
@@ -48,6 +56,8 @@ class Tester:
 
     return wrapped
 
+
+
 def testA():
 
   t = Tester()
@@ -75,7 +85,7 @@ def testA():
   robot.report()
  
   t.stop_logging()
-  
+    
   if t.get_log() == \
     "\n".join(
       ['''table = FlatSurface(width=5, depth=5)'''
@@ -99,7 +109,7 @@ def testA():
     print("testA PASSED")
     return True
   else:
-    print("testD *FAILED*")
+    print("testA *FAILED*")
     return False
 
 
@@ -154,7 +164,7 @@ def testB():
     print("testB PASSED")
     return True
   else:
-    print("testD *FAILED*")
+    print("testB *FAILED*")
     return False
 
 
@@ -221,7 +231,7 @@ def testC():
     print("testC PASSED")
     return True
   else:
-    print("testD *FAILED*")
+    print("testC *FAILED*")
     return False
 
 
@@ -535,6 +545,53 @@ def testD():
   else:
     print("testD *FAILED*")
     return False
+
+
+
+def parse_args_using_argparse() ->  argparse.Namespace:
+  '''Parse cmd line args using rules defined by
+     argparse.ArgumentParser().add_argument() calls.
+     (argparse makes --help txt, outputs error msgs for invalid args, etc)
+     
+     Returns object (argparse.Namespace) containing member variables whose
+     values have been set via the parsing process.
+     
+     Use method operator to access args via returned object (eg args.arg1)
+     Names of methods follow "long" cmd line option name,
+     or "dest" parameter of .add_argument() call if supplied.
+     
+     https://docs.python.org/3/howto/argparse.htm
+     https://docs.python.org/3/library/argparse.html#the-add-
+     argument-method'''
+  
+  parser = argparse.ArgumentParser()
+ 
+  # only adding one argument
+  parser.add_argument('-t'                 # short
+                     ,'--test_all'         # long (test_all is default
+                                           #       var name in progrma)
+                     ,action='store_true'  # True if flag found else False
+                                           # help str shown when -h used
+                     ,help='run all tests in the module. output to stdout'
+                     )
+ 
+  # Can add extra cmd line args here (as if you had passed them into main)
+  # example:
+  #   parser.parse_args(['--date_range','05/05/2005','06/06/2006'])
+  args = parser.parse_args()                  # haven't set any extra args
+ 
+  return args
+
+
+if __name__ == "__main__":
+
+  args = parse_args_using_argparse()
+ 
+  if args.test_all:
+    testA()
+    testB()
+    testC()
+    testD()
 
 #-------------------------------------------------------------------------
 # END OF FILE
