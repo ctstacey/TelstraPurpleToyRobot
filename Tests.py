@@ -51,7 +51,9 @@ class Tester:
 
   # technically this is a static method
   def capture_calls_and_returns(s, func, func_name):
-    '''decorator function used to print names of functions called.
+    '''decorator function used to print names of functions called,
+       and returns from those functions.
+    
        Note: arguments passed in are captured in their repr form.
              (ie. calls will not be identical to that made in code)'''
 
