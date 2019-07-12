@@ -124,7 +124,7 @@ class Character:
 
 
   def report(s, *args, **kwargs) -> str:
-    '''print current (x,y) position and direction of Character'''
+    '''print and return: Character's current x,y position and direction'''
 
     if s._flat_surface:
       x,y = s._position
