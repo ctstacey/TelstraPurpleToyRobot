@@ -19,16 +19,29 @@ import argparse
 
 
 class Tester:
-  '''A class for performing basic testing of functions return values.'''
+  '''A class for performing basic testing of functions return values.
+  
+     Note: This class will not work as expected in IDLE, because the
+           stdout stream can be captured ok, but not reset.
+           Thus, after calling start_logging_stdout, no further stdout
+           output will display in the IDLE console, even after
+           stop_logging_stdout is called.
+           (I don't know why this happens, but I suspect it has to do with
+            the REPL loop being upset, but not reset properly.)'''
 
   def __init__(s):
     s.capturedOutput = None
   
-  def start_logging(s) -> None:
-    s.capturedOutput = io.StringIO()
+  def start_logging_stdout(s) -> None:
+    '''divert stdout stream so it can be recorded by Tester object'''
+    
+    if not s.capturedOutput:
+      s.capturedOutput = io.StringIO()
+
     sys.stdout = s.capturedOutput
     
-  def stop_logging(s) -> None:
+  def stop_logging_stdout(s) -> None:
+    '''reset stdout stream, back to it's normal file alias'''
     sys.stdout = sys.__stdout__
 
   def get_log(s) -> str:
@@ -75,7 +88,7 @@ def testA():
   robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
   robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
 
-  t.start_logging()
+  t.start_logging_stdout()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -84,7 +97,7 @@ def testA():
   robot.move()
   robot.report()
  
-  t.stop_logging()
+  t.stop_logging_stdout()
     
   if t.get_log() == \
     "\n".join(
@@ -130,7 +143,7 @@ def testB():
   robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
   robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
 
-  t.start_logging()
+  t.start_logging_stdout()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -139,7 +152,7 @@ def testB():
   robot.left()
   robot.report()
 
-  t.stop_logging()
+  t.stop_logging_stdout()
   
   if t.get_log() == \
     "\n".join(
@@ -185,7 +198,7 @@ def testC():
   robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
   robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
 
-  t.start_logging()
+  t.start_logging_stdout()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -197,7 +210,7 @@ def testC():
   robot.move()
   robot.report()
 
-  t.stop_logging()
+  t.stop_logging_stdout()
     
   if t.get_log() == \
     "\n".join(
@@ -252,7 +265,7 @@ def testD():
   robot.place  = t.capture_calls_and_returns(robot.place,  'robot.place')
   robot.move   = t.capture_calls_and_returns(robot.move,   'robot.move')
 
-  t.start_logging()
+  t.start_logging_stdout()
 
   print(f"table = {table}")
   robot.report(); print()
@@ -336,7 +349,7 @@ def testD():
   robot.left()
   robot.report(); print()
 
-  t.stop_logging()
+  t.stop_logging_stdout()
       
   if t.get_log() == \
     "\n".join(
