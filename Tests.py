@@ -26,8 +26,14 @@ class Tester:
            Thus, after calling start_logging_stdout, no further stdout
            output will display in the IDLE console, even after
            stop_logging_stdout is called.
-           (I don't know why this happens, but I suspect it has to do with
-            the REPL loop being upset, but not reset properly.)'''
+           
+     "By default, IDLE runs user code in a separate OS process rather than
+     in the user interface process that runs the shell and editor. In the
+     execution process, it replaces sys.stdin, sys.stdout, and
+     sys.stderr with objects that get input from and send output to the
+     Shell window. The original values stored in sys.__stdin__,
+     sys.__stdout__, and sys.__stderr__ are not touched, but may be None."
+     https://docs.python.org/3/library/idle.html#running-user-code'''
 
   def __init__(s):
     s.capturedOutput = None
