@@ -1,4 +1,4 @@
-# Readify Toy Robot Simulator
+# Readify (now Telstra Purple) Toy Robot Simulator
 Readify Graduate Coding Puzzle 2019 - Toy Robot Simulator
 
 ## Instructions from Readify
